@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}文章归档 - Trace_vlog{% endblock %}
+
+{% block meta_description %}浏览Trace_vlog博客的所有文章归档，按时间顺序整理的文章列表。{% endblock %}
+
+{% block meta_keywords %}归档,博客,文章,时间线{% endblock %}
+
+{% block og_title %}文章归档 - Trace_vlog{% endblock %}
+{% block og_description %}浏览Trace_vlog博客的所有文章归档，按时间顺序整理的文章列表。{% endblock %}
+{% block twitter_title %}文章归档 - Trace_vlog{% endblock %}
+{% block twitter_description %}浏览Trace_vlog博客的所有文章归档，按时间顺序整理的文章列表。{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="d-flex align-items-center">
+        <i class="fas fa-calendar-alt fa-2x me-3 text-primary"></i>
+        <h2 class="mb-0">文章归档</h2>
+      </div>
+      <p class="text-muted mt-2">按时间顺序浏览所有文章</p>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-12">
+      <div class="timeline">
+        {% for year_month, posts in archive.items() %}
+        <div class="archive-group mb-5">
+          <div class="archive-header mb-3">
+            <h3 class="archive-title">
+              <span class="badge bg-primary">{{ year_month }}</span>
+              <small class="text-muted ms-2">{{ posts|length }} 篇文章</small>
+            </h3>
+          </div>
+          
+          <div class="archive-posts">
+            {% for post in posts %}
+            <div class="card mb-3 archive-post-card">
+              <div class="card-body">
+                <div class="row">
+                  {% if post.cover_image %}
+                  <div class="col-md-2 col-sm-3 mb-2 mb-sm-0">
+                    <a href="{{ url_for('main.post', id=post.id) }}">
+                      <img src="{{ url_for('static', filename='uploads/' + post.cover_image) }}" alt="{{ post.title }}" class="img-fluid rounded" style="width: 100%; height: 80px; object-fit: cover;">
+                    </a>
+                  </div>
+                  <div class="col-md-10 col-sm-9">
+                  {% else %}
+                  <div class="col-12">
+                  {% endif %}
+                    <div class="d-flex justify-content-between align-items-start">
+                      <h5 class="card-title mb-1">
+                        <a href="{{ url_for('main.post', id=post.id) }}" class="text-decoration-none">{{ post.title }}</a>
+                      </h5>
+                      <span class="text-muted small">{{ post.created_at.strftime('%m-%d') }}</span>
+                    </div>
+                    <div class="card-text text-muted small">
+                      <i class="fas fa-user-circle me-1"></i> {{ post.author.username }}
+                      {% if post.category %}
+                      <i class="fas fa-tag ms-2 me-1"></i> {{ post.category.name }}
+                      {% endif %}
+                      <i class="fas fa-eye ms-2 me-1"></i> {{ post.views }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .timeline {
+    position: relative;
+    padding: 20px 0;
+  }
+  
+  .archive-title {
+    font-size: 1.25rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+  }
+  
+  .archive-post-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .archive-post-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+</style>
+{% endblock %}

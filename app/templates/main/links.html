@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}友情链接 - {{ site_config.get('site_name', 'Trace Blog') }}{% endblock %}
+
+{% block meta %}
+<meta name="description" content="{{ site_config.get('site_description', 'Trace Blog友情链接') }}">
+<meta name="keywords" content="友情链接,博客,交流,{{ site_config.get('site_keywords', 'Trace Blog') }}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:title" content="友情链接 - {{ site_config.get('site_name', 'Trace Blog') }}">
+<meta property="og:description" content="{{ site_config.get('site_description', 'Trace Blog友情链接') }}">
+<meta property="og:image" content="{{ url_for('static', filename='img/logo.png') }}">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="{{ request.url }}">
+<meta property="twitter:title" content="友情链接 - {{ site_config.get('site_name', 'Trace Blog') }}">
+<meta property="twitter:description" content="{{ site_config.get('site_description', 'Trace Blog友情链接') }}">
+<meta property="twitter:image" content="{{ url_for('static', filename='img/logo.png') }}">
+
+<!-- 结构化数据 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "友情链接 - {{ site_config.get('site_name', 'Trace Blog') }}",
+  "description": "{{ site_config.get('site_description', 'Trace Blog友情链接') }}",
+  "url": "{{ request.url }}",
+  "mainEntity": [
+    {% for link in links %}
+    {
+      "@type": "WebSite",
+      "name": "{{ link.name }}",
+      "url": "{{ link.url }}",
+      "description": "{{ link.description }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="page-header mb-5 text-center">
+                <h1 class="display-4">友情链接</h1>
+                <p class="lead text-muted">感谢这些优秀的博客和网站与我们交换友链</p>
+            </div>
+
+            <div class="card mb-5">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-info-circle me-2"></i>申请说明</h5>
+                    <p>如果您想与本站交换友链，请确保您的网站符合以下条件：</p>
+                    <ul>
+                        <li>网站内容健康，无违法内容</li>
+                        <li>网站稳定，能够正常访问</li>
+                        <li>网站有一定的原创内容</li>
+                        <li>已在您的网站添加本站链接</li>
+                    </ul>
+                    <p>符合条件后，请通过以下方式联系我：</p>
+                    <ul>
+                        <li>发送邮件至：<a href="mailto:{{ site_config.get('admin_email', 'admin@example.com') }}">{{ site_config.get('admin_email', 'admin@example.com') }}</a></li>
+                        <li>在<a href="{{ url_for('main.guestbook') }}">留言板</a>留言</li>
+                    </ul>
+                    <p>请提供以下信息：</p>
+                    <ul>
+                        <li>网站名称</li>
+                        <li>网站链接</li>
+                        <li>网站描述（简短介绍）</li>
+                        <li>网站Logo（可选）</li>
+                    </ul>
+                    <p>本站信息：</p>
+                    <ul>
+                        <li>名称：{{ site_config.get('site_name', 'Trace Blog') }}</li>
+                        <li>链接：{{ request.host_url }}</li>
+                        <li>描述：{{ site_config.get('site_description', 'Trace Blog - 一个分享技术与生活的个人博客') }}</li>
+                        <li>Logo：{{ request.host_url }}{{ url_for('static', filename='img/logo.png')[1:] }}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="friends-grid">
+                {% if links %}
+                    {% for link in links %}
+                    <div class="friend-card" title="{{ link.name }}">
+                        <div class="friend-card-inner">
+
+                            <div class="friend-info">
+                                <h3 class="friend-name">
+                                    <a href="{{ link.url }}" target="_blank" rel="noopener nofollow">{{ link.name }}</a>
+                                </h3>
+                                <p class="friend-desc">{{ link.description or '暂无描述' }}</p>
+                                <a href="{{ link.url }}" target="_blank" rel="noopener nofollow" class="friend-link-indicator" title="访问 {{ link.name }}">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state-container">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <h4>暂无友情链接</h4>
+                            <p>期待您的申请成为第一个友链！</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* 友情链接网格布局 */
+    .friends-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    /* 友情链接卡片 */
+    .friend-card {
+        position: relative;
+        background: var(--bg-primary);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid var(--border-light);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    
+    .friend-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .friend-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .friend-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .friend-card-inner {
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+    
+
+    
+    /* 友链信息 */
+    .friend-info {
+        position: relative;
+    }
+    
+    .friend-name {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+    
+    .friend-name a {
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .friend-name a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+    }
+    
+    .friend-name a:hover {
+        color: #667eea;
+    }
+    
+    .friend-name a:hover::after {
+        width: 100%;
+    }
+    
+    .friend-desc {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin: 0 0 1rem 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: 2.4em;
+    }
+    
+    /* 链接指示器 */
+    .friend-link-indicator {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 32px;
+        height: 32px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 0.3s ease;
+    }
+    
+    .friend-link-indicator i {
+        color: #667eea;
+        font-size: 0.75rem;
+    }
+    
+    .friend-card:hover .friend-link-indicator {
+        opacity: 1;
+        transform: scale(1);
+    }
+    
+    /* 空状态样式 */
+    .empty-state-container {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        color: var(--text-muted);
+        max-width: 400px;
+    }
+    
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .empty-icon i {
+        font-size: 2rem;
+        color: var(--text-muted);
+        opacity: 0.6;
+    }
+    
+    .empty-state h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+    
+    .empty-state p {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    /* 页面标题样式 */
+    .page-header h1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .page-header .lead {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
+        font-weight: 400;
+    }
+    
+    /* 申请说明卡片样式 */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        background: var(--bg-primary);
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-light);
+    }
+    
+    .card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+    
+    .card-title {
+        color: #667eea;
+        font-weight: 600;
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+    
+    .card-body ul {
+        padding-left: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .card-body li {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+    
+    .card-body a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border-bottom: 1px solid transparent;
+    }
+    
+    .card-body a:hover {
+        color: #764ba2;
+        border-bottom-color: #764ba2;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .friends-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .friend-card-inner {
+            padding: 1.5rem;
+        }
+        
+        .friend-name {
+            font-size: 1.125rem;
+        }
+        
+        .friend-desc {
+            font-size: 0.875rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .friends-grid {
+            gap: 0.75rem;
+        }
+        
+        .friend-card-inner {
+            padding: 1.25rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}

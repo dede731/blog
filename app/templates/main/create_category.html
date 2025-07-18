@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}新建专栏 - {{ site_config.get('site_name', 'Trace Blog') }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">新建专栏</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">专栏名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="请输入专栏名称" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">专栏描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="请输入专栏描述（可选）"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="sort_order" class="form-label">排序</label>
+                            <input type="number" class="form-control" id="sort_order" name="sort_order" value="0" min="0">
+                            <div class="form-text">数字越小越靠前显示</div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>创建专栏
+                            </button>
+                            <a href="{{ url_for('main.columns') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>返回
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

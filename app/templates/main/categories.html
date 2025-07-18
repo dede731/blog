@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>分类管理</h1>
+    <a href="{{ url_for('main.create_category') }}" class="btn btn-primary mb-3">新增分类</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>分类名称</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ category.id }}</td>
+                <td>{{ category.name }}</td>
+                <td>
+                    <a href="{{ url_for('main.edit_category', id=category.id) }}" class="btn btn-sm btn-warning">编辑</a>
+                    <a href="{{ url_for('main.delete_category', id=category.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('确定删除该分类吗？');">删除</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

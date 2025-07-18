@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{% if announcement %}编辑{% else %}添加{% endif %}网站公告 - {{ site_config.get('site_name', 'Trace Blog') }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h1 class="h3 mb-0">{% if announcement %}编辑{% else %}添加{% endif %}网站公告</h1>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% if announcement %}{{ url_for('main.edit_announcement', id=announcement.id) }}{% else %}{{ url_for('main.add_announcement') }}{% endif %}">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">公告标题 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ announcement.title if announcement else '' }}" required>
+                            <div class="form-text">公告的标题，建议简洁明了</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="content" class="form-label">公告内容 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="content" name="content" rows="4" required>{{ announcement.content if announcement else '' }}</textarea>
+                            <div class="form-text">公告的详细内容，支持HTML标签</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="order" class="form-label">排序</label>
+                                    <input type="number" class="form-control" id="order" name="order" value="{{ announcement.order if announcement else 0 }}" min="0">
+                                    <div class="form-text">数字越小越靠前显示，默认为0</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label d-block">状态</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                               {% if not announcement or announcement.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">
+                                            显示公告
+                                        </label>
+                                    </div>
+                                    <div class="form-text">关闭后公告将不在前台显示</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('main.admin_announcements') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>返回列表
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{% if announcement %}更新{% else %}添加{% endif %}公告
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-header {
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary-color, #007bff);
+        border-color: var(--primary-color, #007bff);
+    }
+    
+    .btn {
+        border-radius: 6px;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    }
+    
+    .text-danger {
+        color: #dc3545 !important;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color, #007bff);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 表单验证
+    const form = document.querySelector('form');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // 验证标题
+        if (!titleInput.value.trim()) {
+            isValid = false;
+            titleInput.classList.add('is-invalid');
+        } else {
+            titleInput.classList.remove('is-invalid');
+        }
+        
+        // 验证内容
+        if (!contentInput.value.trim()) {
+            isValid = false;
+            contentInput.classList.add('is-invalid');
+        } else {
+            contentInput.classList.remove('is-invalid');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('请填写所有必填字段');
+        }
+    });
+    
+    // 实时验证
+    [titleInput, contentInput].forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

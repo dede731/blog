@@ -1,0 +1,907 @@
+{% extends "base.html" %}
+
+{% block title %}写文章{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="juejin-editor">
+        <!-- 编辑器头部 -->
+        <div class="editor-header">
+            <!-- 工具栏 -->
+            <div class="juejin-editor-toolbar">
+                <!-- 左侧：Markdown工具 -->
+                <div class="toolbar-left">
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('# ', '')" title="标题1 (Ctrl+1)">
+                        H
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('**', '**')" title="加粗 (Ctrl+B)">
+                        <strong>B</strong>
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('*', '*')" title="斜体 (Ctrl+I)">
+                        <em>I</em>
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('~~', '~~')" title="删除线">
+                        <s>S</s>
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('`', '`')" title="行内代码 (Ctrl+Shift+K)">
+                        `
+                    </button>
+                    <div class="juejin-toolbar-separator"></div>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('[', '](url)')" title="链接 (Ctrl+K)">
+                        🔗
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="triggerImageUpload()" title="图片 (Ctrl+Shift+I)">
+                        🖼️
+                    </button>
+                    <!-- 隐藏的文件输入框 -->
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('\n```\n', '\n```\n')" title="代码块 (Ctrl+Shift+C)">
+                        &lt;/&gt;
+                    </button>
+                    <div class="juejin-toolbar-separator"></div>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('\n- ', '')" title="无序列表 (Ctrl+Shift+L)">
+                        •
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('\n1. ', '')" title="有序列表">
+                        1.
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('\n> ', '')" title="引用">
+                        ❝
+                    </button>
+                    <div class="juejin-toolbar-separator"></div>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertMarkdown('---\n', '')" title="分割线">
+                        ―
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="insertTable()" title="表格">
+                        ⊞
+                    </button>
+                    <div class="juejin-toolbar-separator"></div>
+                    <button type="button" class="juejin-toolbar-btn" onclick="clearEditor()" title="清空">
+                        🗑️
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="toggleFullscreen()" title="全屏">
+                        ⛶
+                    </button>
+                    <button type="button" class="juejin-toolbar-btn" onclick="toggleFocusMode()" title="专注模式" id="focusModeBtn">
+                        🎯
+                    </button>
+                </div>
+                
+                <!-- 右侧：文章设置 -->
+                <div class="toolbar-right">
+                    <!-- 首图上传 -->
+                    <div class="toolbar-setting-item">
+                        <button type="button" class="setting-btn" onclick="triggerCoverImageUpload()" title="设置首图">
+                            📷 首图
+                        </button>
+                        <input type="file" name="cover_image" id="coverImageInput" accept="image/*" style="display: none;" onchange="handleCoverImageUpload(this)">
+                        <div class="cover-preview-mini" id="coverPreviewMini" style="display: none;">
+                            <img id="coverImageMini" src="" alt="首图" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid #e4e6ea;">
+                            <button type="button" onclick="removeCoverImage()" style="position: absolute; top: -6px; right: -6px; background: #ff4757; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; cursor: pointer; font-size: 10px; line-height: 1;">×</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 专栏选择 -->
+                    <div class="toolbar-setting-item">
+                        <select name="category_id" id="category_id" class="setting-select" title="选择专栏">
+                            <option value="">📁 选择专栏</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- 摘要设置 -->
+                    <div class="toolbar-setting-item">
+                        <button type="button" class="setting-btn" onclick="toggleSummaryPanel()" title="设置摘要" id="summaryBtn">
+                            📝 摘要
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 摘要面板（可折叠） -->
+            <div class="summary-panel" id="summaryPanel" style="display: none;">
+                <div class="summary-panel-content">
+                    <label for="summary" class="summary-label">
+                        文章摘要 <span style="color: #999;">(选填，用于提炼文章精华内容)</span>
+                    </label>
+                    <textarea name="summary" id="summary" class="summary-textarea" placeholder="请输入文章摘要，简要概括文章的核心内容..." maxlength="200"></textarea>
+                    <div class="summary-counter">
+                        <span id="summaryCount">0</span>/200字
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑器内容区 -->
+        <div class="editor-content">
+            <!-- 编辑面板 -->
+            <div class="editor-pane left">
+                <form method="POST" enctype="multipart/form-data" style="height: 100%; display: flex; flex-direction: column;">
+                    <!-- 标题输入区域 -->
+                    <div class="title-input-area" style="padding: 16px 20px; border-bottom: 1px solid #e4e6ea;">
+                        <input type="text" name="title" class="title-input" placeholder="输入文章标题..." style="border: none; outline: none; font-size: 18px; font-weight: 500; padding: 8px 0; background: transparent; width: 100%;" required>
+                    </div>
+                    
+                    <!-- 内容编辑区 -->
+                    <textarea name="content" class="editor-textarea" id="content" placeholder="请输入文章内容，支持 Markdown 语法..."></textarea>
+                    
+                    <!-- 隐藏的表单字段 -->
+                    <input type="hidden" name="category_id" id="hiddenCategoryId">
+                    <input type="hidden" name="summary" id="hiddenSummary">
+                    <input type="file" name="cover_image" id="hiddenCoverImage" style="display: none;">
+                    
+                    <!-- 隐藏的提交按钮，通过底部按钮触发 -->
+                    <button type="submit" id="hiddenSubmit" style="display: none;"></button>
+                </form>
+            </div>
+
+            <!-- 预览面板 -->
+            <div class="editor-pane">
+                <div class="preview-pane" id="preview">
+                    <div class="preview-empty">
+                        <div class="preview-empty-icon">📝</div>
+                        <div class="preview-empty-text">开始写作吧</div>
+                        <div class="preview-empty-hint">在左侧编辑器中输入内容，这里会实时显示预览效果</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑器底部 -->
+        <div class="editor-footer">
+            <div class="editor-stats">
+                <div class="stat-item">
+                    <span>字符数:</span>
+                    <span id="charCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>单词数:</span>
+                    <span id="wordCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>行数:</span>
+                    <span id="lineCount">1</span>
+                </div>
+            </div>
+            <div class="editor-actions">
+                <button type="button" class="action-btn" onclick="saveDraft()">存草稿</button>
+                <button type="button" class="action-btn" onclick="publishArticle()">发布文章</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Marked.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+
+<script>
+// 获取DOM元素
+const contentTextarea = document.getElementById('content');
+const titleInput = document.querySelector('.title-input');
+const summaryTextarea = document.getElementById('summary');
+const previewPane = document.getElementById('preview');
+const charCountSpan = document.getElementById('charCount');
+const wordCountSpan = document.getElementById('wordCount');
+const lineCountSpan = document.getElementById('lineCount');
+const summaryCountSpan = document.getElementById('summaryCount');
+
+// 实时预览功能
+function updatePreview() {
+    const content = contentTextarea.value;
+    
+    if (content.trim() === '') {
+        previewPane.innerHTML = `
+            <div class="preview-empty">
+                <div class="preview-empty-icon">📝</div>
+                <div class="preview-empty-text">开始写作吧</div>
+                <div class="preview-empty-hint">在左侧编辑器中输入内容，这里会实时显示预览效果</div>
+            </div>
+        `;
+    } else {
+        try {
+            previewPane.innerHTML = marked.parse(content);
+        } catch (error) {
+            previewPane.innerHTML = '<p style="color: #e74c3c;">预览解析错误</p>';
+        }
+    }
+    
+    updateStats();
+}
+
+// 更新统计信息
+function updateStats() {
+    const content = contentTextarea.value;
+    const charCount = content.length;
+    const wordCount = content.trim() === '' ? 0 : content.trim().split(/\s+/).length;
+    const lineCount = content.split('\n').length;
+    
+    charCountSpan.textContent = charCount;
+    wordCountSpan.textContent = wordCount;
+    lineCountSpan.textContent = lineCount;
+}
+
+// 更新摘要字符计数
+function updateSummaryCount() {
+    const summary = summaryTextarea.value;
+    const count = summary.length;
+    summaryCountSpan.textContent = count;
+    
+    // 超过200字时变红提示
+    if (count > 200) {
+        summaryCountSpan.style.color = '#e74c3c';
+    } else {
+        summaryCountSpan.style.color = '#999';
+    }
+}
+
+// 插入Markdown语法
+function insertMarkdown(before, after) {
+    const start = contentTextarea.selectionStart;
+    const end = contentTextarea.selectionEnd;
+    const selectedText = contentTextarea.value.substring(start, end);
+    const newText = before + selectedText + after;
+    
+    contentTextarea.value = contentTextarea.value.substring(0, start) + newText + contentTextarea.value.substring(end);
+    
+    // 设置光标位置
+    const newCursorPos = start + before.length + selectedText.length;
+    contentTextarea.setSelectionRange(newCursorPos, newCursorPos);
+    contentTextarea.focus();
+    
+    updatePreview();
+}
+
+// 插入表格
+function insertTable() {
+    const tableMarkdown = '\n| 列1 | 列2 | 列3 |\n|-----|-----|-----|\n| 内容1 | 内容2 | 内容3 |\n| 内容4 | 内容5 | 内容6 |\n';
+    insertMarkdown(tableMarkdown, '');
+}
+
+// 清空编辑器
+function clearEditor() {
+    if (confirm('确定要清空所有内容吗？')) {
+        contentTextarea.value = '';
+        titleInput.value = '';
+        summaryTextarea.value = '';
+        updatePreview();
+        updateSummaryCount();
+    }
+}
+
+// 触发图片上传
+function triggerImageUpload() {
+    document.getElementById('imageUpload').click();
+}
+
+// 处理图片上传
+function handleImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+        alert('请选择图片文件');
+        return;
+    }
+    
+    // 检查文件大小（限制为5MB）
+    if (file.size > 5 * 1024 * 1024) {
+        alert('图片文件不能超过5MB');
+        return;
+    }
+    
+    uploadImage(file);
+}
+
+// 上传图片到服务器
+function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    // 显示上传进度
+    const uploadingText = '![上传中...](uploading)';
+    insertMarkdown(uploadingText, '');
+    
+    fetch('/upload_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 替换上传中的文本为实际的图片链接
+            const imageMarkdown = `![${file.name}](${data.url})`;
+            const content = contentTextarea.value;
+            const newContent = content.replace(uploadingText, imageMarkdown);
+            contentTextarea.value = newContent;
+            updatePreview();
+        } else {
+            // 移除上传中的文本
+            const content = contentTextarea.value;
+            const newContent = content.replace(uploadingText, '');
+            contentTextarea.value = newContent;
+            updatePreview();
+            alert('图片上传失败: ' + data.message);
+        }
+    })
+    .catch(error => {
+        // 移除上传中的文本
+        const content = contentTextarea.value;
+        const newContent = content.replace(uploadingText, '');
+        contentTextarea.value = newContent;
+        updatePreview();
+        alert('图片上传失败: ' + error.message);
+    });
+}
+
+// 处理复制粘贴图片
+function handlePaste(e) {
+    const items = e.clipboardData.items;
+    
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        
+        // 检查是否为图片
+        if (item.type.indexOf('image') !== -1) {
+            e.preventDefault();
+            const file = item.getAsFile();
+            uploadImage(file);
+            break;
+        }
+    }
+}
+
+// 处理拖拽上传
+function handleDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    contentTextarea.style.backgroundColor = '#f0f8ff';
+}
+
+function handleDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    contentTextarea.style.backgroundColor = '';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    contentTextarea.style.backgroundColor = '';
+    
+    const files = e.dataTransfer.files;
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+            uploadImage(file);
+        }
+    }
+}
+
+// 首图上传功能
+function triggerCoverImageUpload() {
+    document.getElementById('coverImageInput').click();
+}
+
+function handleCoverImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+        alert('请选择图片文件');
+        return;
+    }
+    
+    // 检查文件大小（限制为5MB）
+    if (file.size > 5 * 1024 * 1024) {
+        alert('图片文件不能超过5MB');
+        return;
+    }
+    
+    // 预览图片
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('coverImagePreview');
+        const img = document.getElementById('coverImageImg');
+        const uploadBtn = document.querySelector('.cover-image-btn');
+        
+        img.src = e.target.result;
+        preview.style.display = 'block';
+        uploadBtn.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeCoverImage() {
+    const preview = document.getElementById('coverImagePreview');
+    const uploadBtn = document.querySelector('.cover-image-btn');
+    const input = document.getElementById('coverImageInput');
+    
+    preview.style.display = 'none';
+    uploadBtn.style.display = 'flex';
+    input.value = '';
+}
+
+// 全屏切换
+function toggleFullscreen() {
+    const editor = document.querySelector('.juejin-editor');
+    editor.classList.toggle('fullscreen');
+    
+    // 更新按钮文本
+    const btn = event.target;
+    btn.textContent = editor.classList.contains('fullscreen') ? '退出全屏' : '⛶';
+}
+
+// 专注模式切换
+function toggleFocusMode() {
+    const editor = document.querySelector('.juejin-editor');
+    const focusBtn = document.getElementById('focusModeBtn');
+    
+    editor.classList.toggle('focus-mode');
+    
+    if (editor.classList.contains('focus-mode')) {
+        focusBtn.textContent = '退出专注';
+        focusBtn.title = '退出专注模式';
+        // 隐藏预览面板，只显示编辑器
+        document.querySelector('.editor-pane:not(.left)').style.display = 'none';
+        document.querySelector('.editor-pane.left').style.width = '100%';
+        // 聚焦到内容编辑区
+        contentTextarea.focus();
+    } else {
+        focusBtn.textContent = '🎯';
+        focusBtn.title = '专注模式';
+        // 恢复预览面板
+        document.querySelector('.editor-pane:not(.left)').style.display = 'block';
+        document.querySelector('.editor-pane.left').style.width = '50%';
+    }
+}
+
+// 存草稿
+function saveDraft() {
+    const title = titleInput.value.trim();
+    const content = contentTextarea.value.trim();
+    
+    if (!title && !content) {
+        alert('请输入标题或内容');
+        return;
+    }
+    
+    // 这里可以实现草稿保存功能
+    alert('草稿已保存（功能待实现）');
+}
+
+// 摘要面板切换
+function toggleSummaryPanel() {
+    const panel = document.getElementById('summaryPanel');
+    const btn = document.getElementById('summaryBtn');
+    
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        btn.style.background = '#e3f2fd';
+        btn.style.color = '#1976d2';
+    } else {
+        panel.style.display = 'none';
+        btn.style.background = '';
+        btn.style.color = '';
+    }
+}
+
+// 首图上传功能（更新版）
+function triggerCoverImageUpload() {
+    document.getElementById('coverImageInput').click();
+}
+
+function handleCoverImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+        alert('请选择图片文件');
+        return;
+    }
+    
+    // 检查文件大小（限制为5MB）
+    if (file.size > 5 * 1024 * 1024) {
+        alert('图片文件不能超过5MB');
+        return;
+    }
+    
+    // 预览图片
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const miniPreview = document.getElementById('coverPreviewMini');
+        const miniImg = document.getElementById('coverImageMini');
+        const uploadBtn = document.querySelector('.setting-btn[title="设置首图"]');
+        
+        miniImg.src = e.target.result;
+        miniPreview.style.display = 'block';
+        uploadBtn.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeCoverImage() {
+    const miniPreview = document.getElementById('coverPreviewMini');
+    const uploadBtn = document.querySelector('.setting-btn[title="设置首图"]');
+    const input = document.getElementById('coverImageInput');
+    
+    miniPreview.style.display = 'none';
+    uploadBtn.style.display = 'inline-flex';
+    input.value = '';
+}
+
+// 发布文章
+function publishArticle() {
+    const title = titleInput.value.trim();
+    const content = contentTextarea.value.trim();
+    const summary = summaryTextarea.value.trim();
+    const categorySelect = document.getElementById('category_id');
+    const categoryId = categorySelect.value;
+    
+    if (!title) {
+        alert('请输入文章标题');
+        titleInput.focus();
+        return;
+    }
+    
+    if (!content) {
+        alert('请输入文章内容');
+        contentTextarea.focus();
+        return;
+    }
+    
+    if (!categoryId) {
+        alert('请选择专栏');
+        categorySelect.focus();
+        return;
+    }
+    
+    // 检查摘要长度
+    if (summary.length > 200) {
+        alert('文章摘要不能超过200字');
+        summaryTextarea.focus();
+        return;
+    }
+    
+    // 同步表单字段值
+    document.getElementById('hiddenCategoryId').value = categoryId;
+    document.getElementById('hiddenSummary').value = summary;
+    
+    // 同步首图文件（如果有的话）
+    const coverImageInput = document.getElementById('coverImageInput');
+    const hiddenCoverImageInput = document.getElementById('hiddenCoverImage');
+    if (coverImageInput && coverImageInput.files.length > 0) {
+        // 创建新的文件输入来传递文件
+        const dt = new DataTransfer();
+        dt.items.add(coverImageInput.files[0]);
+        hiddenCoverImageInput.files = dt.files;
+    }
+    
+    // 提交表单
+    document.getElementById('hiddenSubmit').click();
+}
+
+// 快捷键支持
+document.addEventListener('keydown', function(e) {
+    const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+    
+    if (isCtrlOrCmd) {
+        switch(e.key.toLowerCase()) {
+            case 'b':
+                e.preventDefault();
+                insertMarkdown('**', '**');
+                break;
+            case 'i':
+                e.preventDefault();
+                insertMarkdown('*', '*');
+                break;
+            case 'k':
+                e.preventDefault();
+                insertMarkdown('[', '](url)');
+                break;
+            case '1':
+                e.preventDefault();
+                insertMarkdown('# ', '');
+                break;
+            case 'enter':
+                e.preventDefault();
+                publishArticle();
+                break;
+        }
+    }
+    
+    if (isCtrlOrCmd && e.shiftKey) {
+        switch(e.key.toLowerCase()) {
+            case 'c':
+                e.preventDefault();
+                insertMarkdown('\n```\n', '\n```\n');
+                break;
+            case 'k':
+                e.preventDefault();
+                insertMarkdown('`', '`');
+                break;
+            case 'i':
+                e.preventDefault();
+                insertMarkdown('![', '](image-url)');
+                break;
+            case 'l':
+                e.preventDefault();
+                insertMarkdown('\n- ', '');
+                break;
+        }
+    }
+    
+    // Tab键处理
+    if (e.key === 'Tab' && e.target === contentTextarea) {
+        e.preventDefault();
+        const start = contentTextarea.selectionStart;
+        const end = contentTextarea.selectionEnd;
+        contentTextarea.value = contentTextarea.value.substring(0, start) + '  ' + contentTextarea.value.substring(end);
+        contentTextarea.selectionStart = contentTextarea.selectionEnd = start + 2;
+        updatePreview();
+    }
+});
+
+// 监听输入事件
+contentTextarea.addEventListener('input', updatePreview);
+titleInput.addEventListener('input', updateStats);
+summaryTextarea.addEventListener('input', updateSummaryCount);
+
+// 添加复制粘贴和拖拽事件监听器
+contentTextarea.addEventListener('paste', handlePaste);
+contentTextarea.addEventListener('dragover', handleDragOver);
+contentTextarea.addEventListener('dragleave', handleDragLeave);
+contentTextarea.addEventListener('drop', handleDrop);
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    updatePreview();
+    updateSummaryCount();
+    
+    // 检查marked.js是否加载成功
+    if (typeof marked === 'undefined') {
+        console.error('Marked.js 加载失败，预览功能可能无法正常工作');
+        previewPane.innerHTML = '<p style="color: #e74c3c;">预览功能暂时不可用，请检查网络连接</p>';
+    }
+});
+
+// ESC键退出全屏
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const editor = document.querySelector('.juejin-editor');
+        if (editor.classList.contains('fullscreen')) {
+            editor.classList.remove('fullscreen');
+            const fullscreenBtn = document.querySelector('.juejin-toolbar-btn[title="全屏"]');
+            if (fullscreenBtn) fullscreenBtn.textContent = '⛶';
+        }
+    }
+});
+</script>
+
+<style>
+/* 工具栏布局样式 */
+.juejin-editor-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toolbar-setting-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* 设置按钮样式 */
+.setting-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.setting-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.setting-btn:active {
+    background: #e5e7eb;
+}
+
+/* 专栏选择样式 */
+.setting-select {
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    cursor: pointer;
+    min-width: 120px;
+    transition: all 0.2s;
+}
+
+.setting-select:hover {
+    border-color: #9ca3af;
+}
+
+.setting-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 首图预览样式 */
+.cover-preview-mini {
+    position: relative;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+/* 摘要面板样式 */
+.summary-panel {
+    background: #f8f9fa;
+    border-top: 1px solid #e4e6ea;
+    padding: 16px 20px;
+    animation: slideDown 0.3s ease;
+}
+
+.summary-panel-content {
+    max-width: 600px;
+}
+
+.summary-label {
+    display: block;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.summary-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.summary-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.summary-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 8px;
+    transition: color 0.3s ease;
+}
+
+/* 动画效果 */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 标题输入框样式 */
+.form-control {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.form-control:focus {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* 全屏模式下的样式调整 */
+.juejin-editor.fullscreen {
+    background: #ffffff;
+}
+
+.juejin-editor.fullscreen .editor-content {
+    min-height: calc(100vh - 140px);
+}
+
+/* 专注模式样式 */
+.juejin-editor.focus-mode {
+    background: #f8f9fa;
+}
+
+.juejin-editor.focus-mode .editor-header {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.juejin-editor.focus-mode .editor-footer {
+    background: #ffffff;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+}
+
+.juejin-editor.focus-mode .editor-pane.left {
+    transition: width 0.3s ease;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 0 !important;
+    }
+    
+    .juejin-editor {
+        margin: 0;
+        border-radius: 0;
+    }
+    
+    .juejin-editor.focus-mode .editor-pane.left {
+        width: 100% !important;
+    }
+    
+    .juejin-editor-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .toolbar-left,
+    .toolbar-right {
+        justify-content: center;
+    }
+    
+    .toolbar-right {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #e4e6ea;
+    }
+    
+    .setting-btn,
+    .setting-select {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+}
+</style>
+{% endblock %}

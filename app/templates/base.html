@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trace_vlog{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Trace_vlog - 分享技术见解，记录成长足迹{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}博客,技术,编程,学习{% endblock %}">
+    <meta name="author" content="Trace_vlog">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    <meta name="revisit-after" content="7 days">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Trace_vlog">
+    <link rel="canonical" href="{{ request.url }}">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:title" content="{% block og_title %}Trace_vlog{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Trace_vlog - 分享技术见解，记录成长足迹{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/og-image.jpg', _external=True) }}{% endblock %}">
+    <meta property="og:site_name" content="Trace_vlog">
+    <meta property="og:locale" content="zh_CN">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.url }}">
+    <meta property="twitter:title" content="{% block twitter_title %}Trace_vlog{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Trace_vlog - 分享技术见解，记录成长足迹{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/og-image.jpg', _external=True) }}{% endblock %}">
+    <!-- 预加载关键资源 -->
+    <link rel="preconnect" href="https://cdn.bootcdn.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 样式表 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="Trace_vlog RSS Feed" href="{{ url_for('main.rss', _external=True) }}">
+    <!-- 网站图标 -->
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    
+    {% block structured_data %}{% endblock %}
+
+<style>
+.comment {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+.replies {
+  margin-left: 20px;
+  border-left: 2px solid #eee;
+  padding-left: 10px;
+}
+</style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top modern-navbar">
+        <div class="container">
+            <a class="navbar-brand modern-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-code me-2"></i>Trace_vlog
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-link" href="{{ url_for('main.index') }}">
+                            <i class="fas fa-home me-1"></i>首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-link" href="{{ url_for('main.archive') }}">
+                            <i class="fas fa-archive me-1"></i>归档
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-link" href="{{ url_for('main.about') }}">
+                            <i class="fas fa-user me-1"></i>关于我
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-link" href="{{ url_for('main.guestbook') }}">
+                            <i class="fas fa-comments me-1"></i>留言板
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-link" href="{{ url_for('main.friend_links') }}">
+                            <i class="fas fa-link me-1"></i>友情链接
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-link" href="{{ url_for('main.create') }}">
+                            <i class="fas fa-edit me-1"></i>写文章
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-link" href="{{ url_for('main.columns') }}">
+                            <i class="fas fa-columns me-1"></i>专栏管理
+                        </a>
+                    </li>
+                    {% if current_user.is_admin %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle modern-nav-link" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cog me-1"></i>管理
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('main.admin_links') }}">
+                                <i class="fas fa-link me-2"></i>友情链接管理
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <!-- 搜索框 -->
+                <div class="navbar-nav me-3">
+                    <form class="d-flex search-form" method="GET" action="{{ url_for('main.search') }}">
+                        <div class="search-input-container">
+                            <input class="form-control search-input" type="search" name="q" placeholder="搜索文章..." aria-label="搜索" value="{{ request.args.get('q', '') }}">
+                            <div class="search-suggestions"></div>
+                        </div>
+                        <button class="btn btn-outline-primary search-btn" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle modern-nav-link" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>{{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end modern-dropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">
+                                <i class="fas fa-user me-2"></i>个人资料
+                            </a></li>
+                            {% if current_user.is_admin %}
+                            <li><a class="dropdown-item" href="{{ url_for('auth.comments') }}">
+                                <i class="fas fa-comments me-2"></i>评论管理
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.sensitive_words') }}">
+                                <i class="fas fa-filter me-2"></i>敏感词管理
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.guestbook_management') }}">
+                                <i class="fas fa-clipboard-list me-2"></i>留言板管理
+                            </a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>退出
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i>登录
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary text-white px-3 ms-2" href="{{ url_for('auth.register') }}">
+                            注册
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+        <!-- Flash 消息 -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="container">
+            {% for message in messages %}
+            <div class="alert alert-info alert-dismissible fade show modern-alert" role="alert">
+                <i class="fas fa-info-circle me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 现代化页脚 -->
+    <footer class="modern-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="footer-brand">
+                        <i class="fas fa-code me-2"></i>Trace_vlog
+                    </div>
+                    <p class="footer-description">
+                        分享技术见解，记录成长足迹
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="footer-links">
+                        <a href="{{ url_for('main.index') }}" class="footer-link">首页</a>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('main.create') }}" class="footer-link">写文章</a>
+                        {% endif %}
+                        <a href="{{ url_for('main.archive') }}" class="footer-link">归档</a>
+                        <a href="{{ url_for('main.about') }}" class="footer-link">关于我</a>
+                        <a href="{{ url_for('main.guestbook') }}" class="footer-link">留言板</a>
+                        <a href="{{ url_for('main.friend_links') }}" class="footer-link">友情链接</a>
+                        <a href="{{ url_for('main.rss') }}" class="footer-link"><i class="fas fa-rss"></i> RSS订阅</a>
+                    </div>
+                    <div class="footer-social mt-3">
+                        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="footer-copyright">
+                        © 2024 Trace_vlog. 用 <i class="fas fa-heart text-danger"></i> 构建
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="backToTop" class="back-to-top" title="返回顶部">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script>
+        // 返回顶部功能
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        document.getElementById('backToTop').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 初始化搜索功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化导航栏搜索自动完成
+            new SearchAutoComplete('.search-input', '.search-suggestions');
+        });
+    </script>
+</body>
+</html>

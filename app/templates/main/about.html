@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}关于我 - Trace_vlog{% endblock %}
+
+{% block meta_description %}了解Trace_vlog博客的创建者、博客理念和技术栈，以及联系方式。{% endblock %}
+
+{% block meta_keywords %}关于我,博客介绍,个人简介,联系方式{% endblock %}
+
+{% block og_title %}关于我 - Trace_vlog{% endblock %}
+{% block og_description %}了解Trace_vlog博客的创建者、博客理念和技术栈，以及联系方式。{% endblock %}
+{% block og_image %}{{ url_for('static', filename='img/og-image.jpg', _external=True) }}{% endblock %}
+{% block twitter_title %}关于我 - Trace_vlog{% endblock %}
+{% block twitter_description %}了解Trace_vlog博客的创建者、博客理念和技术栈，以及联系方式。{% endblock %}
+{% block twitter_image %}{{ url_for('static', filename='img/og-image.jpg', _external=True) }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "mainEntity": {
+    "@type": "Person",
+    "name": "Trace_vlog",
+    "description": "Trace_vlog博客的创建者，专注于Web开发、后端架构和数据库设计等领域。",
+    "image": "{{ url_for('static', filename='img/avatar.jpg', _external=True) }}",
+    "url": "{{ request.url }}",
+    "sameAs": [
+      "https://github.com/Trace_vlog",
+      "https://twitter.com/Trace_vlog"
+    ],
+    "knowsAbout": [
+      "Web开发",
+      "后端架构",
+      "数据库设计",
+      "人工智能",
+      "云计算"
+    ]
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="about-section">
+                <div class="about-header text-center mb-5">
+                    <h1 class="display-4">关于我</h1>
+                    <p class="lead text-muted">分享技术见解，记录成长足迹</p>
+                </div>
+                
+                <div class="about-content">
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <h2 class="card-title mb-4"><i class="fas fa-user me-2"></i>个人简介</h2>
+                            <div class="row align-items-center">
+                                <div class="col-md-4 text-center mb-4 mb-md-0">
+                                    <div class="avatar-container">
+                                        <img src="{{ url_for('static', filename='img/avatar.jpg') }}" alt="博主头像" class="img-fluid rounded-circle avatar" onerror="this.src='https://via.placeholder.com/200x200?text=Trace_vlog'">
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <p>你好，我是Trace_vlog博客的创建者。作为一名热爱技术的开发者，我创建这个博客是为了分享我在编程和技术领域的学习心得、经验和见解。</p>
+                                    <p>我专注于Web开发、后端架构和数据库设计等领域，同时也对人工智能、云计算等新兴技术保持浓厚的兴趣。</p>
+                                    <p>通过这个博客，我希望能与更多志同道合的朋友交流，共同进步。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <h2 class="card-title mb-4"><i class="fas fa-laptop-code me-2"></i>博客介绍</h2>
+                            <p>Trace_vlog创建于2024年，是一个专注于技术分享和学习记录的个人博客。</p>
+                            <p>在这里，你可以找到关于以下主题的文章：</p>
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="topic-card">
+                                        <i class="fas fa-code fa-2x mb-3 text-primary"></i>
+                                        <h5>编程语言</h5>
+                                        <p>Python, JavaScript, Java等主流编程语言的教程和实践</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="topic-card">
+                                        <i class="fas fa-server fa-2x mb-3 text-primary"></i>
+                                        <h5>Web开发</h5>
+                                        <p>前后端开发、框架使用、最佳实践和性能优化</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="topic-card">
+                                        <i class="fas fa-database fa-2x mb-3 text-primary"></i>
+                                        <h5>数据库</h5>
+                                        <p>关系型和NoSQL数据库的设计、优化和使用技巧</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="topic-card">
+                                        <i class="fas fa-brain fa-2x mb-3 text-primary"></i>
+                                        <h5>人工智能</h5>
+                                        <p>机器学习、深度学习和AI应用的入门和进阶</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-5">
+                        <div class="card-body">
+                            <h2 class="card-title mb-4"><i class="fas fa-cogs me-2"></i>技术栈</h2>
+                            <p>本博客使用以下技术构建：</p>
+                            <div class="tech-stack">
+                                <div class="tech-item">
+                                    <span class="tech-name">Flask</span>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="tech-item">
+                                    <span class="tech-name">MySQL</span>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="tech-item">
+                                    <span class="tech-name">SQLAlchemy</span>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="tech-item">
+                                    <span class="tech-name">HTML/CSS/JavaScript</span>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="tech-item">
+                                    <span class="tech-name">Bootstrap</span>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title mb-4"><i class="fas fa-envelope me-2"></i>联系我</h2>
+                            <p>如果你有任何问题、建议或合作意向，欢迎通过以下方式联系我：</p>
+                            <div class="contact-info mt-4">
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope-open-text me-3 text-primary"></i>
+                                    <span>邮箱：contact@trace-vlog.com</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fab fa-github me-3 text-primary"></i>
+                                    <span>GitHub：<a href="https://github.com/trace-vlog" target="_blank">github.com/trace-vlog</a></span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fab fa-twitter me-3 text-primary"></i>
+                                    <span>Twitter：<a href="https://twitter.com/trace_vlog" target="_blank">@trace_vlog</a></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.about-section {
+    padding: 2rem 0;
+}
+
+.avatar {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border: 5px solid var(--bg-tertiary);
+    box-shadow: var(--shadow-md);
+}
+
+.topic-card {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.topic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.tech-stack {
+    margin-top: 1.5rem;
+}
+
+.tech-item {
+    margin-bottom: 1rem;
+}
+
+.tech-name {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+}
+
+.contact-item:hover {
+    transform: translateX(5px);
+    background-color: var(--bg-secondary);
+}
+</style>
+{% endblock %}

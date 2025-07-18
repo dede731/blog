@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - 专栏 - {{ site_config.get('site_name', 'Trace Blog') }}{% endblock %}
+
+{% block meta_description %}浏览{{ site_config.get('site_name', 'Trace Blog') }}中{{ category.name }}专栏的所有文章，共{{ posts.total }}篇文章。{% endblock %}
+
+{% block meta_keywords %}{{ category.name }},专栏,博客,文章{% endblock %}
+
+{% block og_title %}{{ category.name }} - 专栏 - {{ site_config.get('site_name', 'Trace Blog') }}{% endblock %}
+{% block og_description %}浏览{{ site_config.get('site_name', 'Trace Blog') }}中{{ category.name }}专栏的所有文章，共{{ posts.total }}篇文章。{% endblock %}
+{% block twitter_title %}{{ category.name }} - 专栏 - {{ site_config.get('site_name', 'Trace Blog') }}{% endblock %}
+{% block twitter_description %}浏览{{ site_config.get('site_name', 'Trace Blog') }}中{{ category.name }}专栏的所有文章，共{{ posts.total }}篇文章。{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- 专栏头部 -->
+        <div class="col-12 mb-5">
+            <div class="column-header">
+                <div class="column-info">
+                    <h1 class="column-title">{{ category.name }}</h1>
+                    {% if category.description %}
+                    <p class="column-description">{{ category.description }}</p>
+                    {% endif %}
+                    <div class="column-stats">
+                        <span class="stat-item">
+                            <i class="fas fa-file-alt me-1"></i>
+                            {{ posts.total }} 篇文章
+                        </span>
+                        {% set latest_post = category.get_latest_post() %}
+                        {% if latest_post %}
+                        <span class="stat-item">
+                            <i class="fas fa-clock me-1"></i>
+                            最新更新：{{ latest_post.created_at.strftime('%Y年%m月%d日') }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文章列表 -->
+        <div class="col-12">
+            {% if posts.items %}
+            <div class="articles-section">
+                <h3 class="section-title mb-4">专栏文章</h3>
+                <div class="articles-list">
+                    {% for post in posts.items %}
+                    <article class="article-item">
+                        {% if post.cover_image %}
+                        <div class="article-image">
+                            <a href="{{ url_for('main.post', id=post.id) }}">
+                                <img src="{{ url_for('static', filename='uploads/' + post.cover_image) }}" alt="{{ post.title }}" class="img-fluid">
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="article-content">
+                            <h4 class="article-title">
+                                <a href="{{ url_for('main.post', id=post.id) }}">{{ post.title }}</a>
+                            </h4>
+                            {% if post.summary %}
+                            <p class="article-summary">{{ post.summary }}</p>
+                            {% else %}
+                            <p class="article-summary">{{ post.content[:200] }}...</p>
+                            {% endif %}
+                            <div class="article-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ post.created_at.strftime('%Y年%m月%d日') }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-eye me-1"></i>
+                                    {{ post.views }} 次阅读
+                                </span>
+                                {% if post.get_like_count() > 0 %}
+                                <span class="meta-item">
+                                    <i class="fas fa-heart me-1"></i>
+                                    {{ post.get_like_count() }} 个赞
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="article-actions">
+                            <a href="{{ url_for('main.post', id=post.id) }}" class="btn btn-outline-primary btn-sm">
+                                阅读全文
+                            </a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <!-- 分页 -->
+                {% if posts.pages > 1 %}
+                <nav aria-label="文章分页" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        {% if posts.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.category', id=category.id, page=posts.prev_num) }}">上一页</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in posts.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != posts.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('main.category', id=category.id, page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                                {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">…</span>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if posts.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.category', id=category.id, page=posts.next_num) }}">下一页</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="empty-state text-center py-5">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">暂无文章</h4>
+                <p class="text-muted">这个专栏还没有发布任何文章</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.column-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    color: white !important;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.column-header::before,
+.column-header::after {
+    display: none !important;
+}
+
+.column-header * {
+    color: white !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.column-info {
+    position: relative;
+    z-index: 1;
+}
+
+.column-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: white !important;
+}
+
+.column-description {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    font-weight: 400;
+}
+
+.column-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    font-size: 1rem;
+    font-weight: 500;
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.article-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+}
+
+.article-image {
+    flex-shrink: 0;
+    width: 200px;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.article-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.article-image:hover img {
+    transform: scale(1.05);
+}
+
+.article-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border-color: #dee2e6;
+}
+
+.article-content {
+    flex: 1;
+}
+
+.article-title {
+    margin-bottom: 0.75rem;
+}
+
+.article-title a {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.article-title a:hover {
+    color: #3498db;
+}
+
+.article-summary {
+    color: #6c757d;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.article-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    font-size: 0.85rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+}
+
+.article-actions {
+    flex-shrink: 0;
+}
+
+.empty-state {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .column-title {
+        font-size: 2rem;
+    }
+    
+    .column-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .article-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .article-image {
+        width: 100%;
+        height: 200px;
+        margin-bottom: 1rem;
+    }
+    
+    .article-actions {
+        margin-top: 1rem;
+        text-align: right;
+    }
+    
+    .article-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

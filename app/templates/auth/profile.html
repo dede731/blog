@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">个人资料</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">用户名</div>
+                        <div class="col-sm-9">{{ current_user.username }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">邮箱</div>
+                        <div class="col-sm-9">{{ current_user.email }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">注册时间</div>
+                        <div class="col-sm-9">{{ current_user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">文章数量</div>
+                        <div class="col-sm-9">{{ current_user.posts.count() }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">我的文章</div>
+                <div class="card-body">
+                    {% if current_user.posts.count() > 0 %}
+                    <div class="list-group">
+                        {% for post in current_user.posts %}
+                        <a href="{{ url_for('main.post', id=post.id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ post.title }}</h5>
+                                <small class="text-muted">{{ post.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
+                            <p class="mb-1">{{ post.summary or post.content[:100] }}...</p>
+                            <small class="text-muted">阅读: {{ post.views }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">还没有发布过文章</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

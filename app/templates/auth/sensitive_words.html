@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}敏感词管理 - Trace_vlog{% endblock %}
+
+{% block meta_description %}管理网站敏感词，添加或删除敏感词{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">敏感词管理</h1>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addWordModal">
+                    <i class="fas fa-plus me-1"></i>添加敏感词
+                </button>
+            </div>
+            
+            {% if words %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>敏感词</th>
+                                    <th>添加时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for word in words %}
+                                <tr>
+                                    <td>{{ word.word }}</td>
+                                    <td>{{ word.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteWordModal" data-word-id="{{ word.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 分页 -->
+            {% if words.pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if words.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('auth.sensitive_words', page=words.prev_num) }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page in words.iter_pages() %}
+                    {% if page %}
+                    <li class="page-item {% if page == words.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('auth.sensitive_words', page=page) }}">{{ page }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if words.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('auth.sensitive_words', page=words.next_num) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>暂无敏感词
+            </div>
+            {% endif %}
+            
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">批量导入敏感词</h5>
+                </div>
+                <div class="card-body">
+                    <!-- 导航标签 -->
+                    <ul class="nav nav-tabs" id="importTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="text-tab" data-bs-toggle="tab" data-bs-target="#text-import" type="button" role="tab">
+                                <i class="fas fa-edit me-1"></i>文本导入
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="file-tab" data-bs-toggle="tab" data-bs-target="#file-import" type="button" role="tab">
+                                <i class="fas fa-file-upload me-1"></i>文件导入
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="preset-tab" data-bs-toggle="tab" data-bs-target="#preset-import" type="button" role="tab">
+                                <i class="fas fa-database me-1"></i>预设词库
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3" id="importTabContent">
+                        <!-- 文本导入 -->
+                        <div class="tab-pane fade show active" id="text-import" role="tabpanel">
+                            <form action="{{ url_for('auth.import_sensitive_words') }}" method="post">
+                                <div class="mb-3">
+                                    <label for="wordList" class="form-label">敏感词列表（每行一个）</label>
+                                    <textarea class="form-control" id="wordList" name="word_list" rows="8" placeholder="请输入敏感词，每行一个&#10;例如：&#10;赌博&#10;色情&#10;暴力"></textarea>
+                                    <div class="form-text">支持中文、英文、数字等，每行一个敏感词</div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-upload me-1"></i>导入敏感词
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- 文件导入 -->
+                        <div class="tab-pane fade" id="file-import" role="tabpanel">
+                            <form action="{{ url_for('auth.import_sensitive_words_file') }}" method="post" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="wordFile" class="form-label">选择敏感词文件</label>
+                                    <input type="file" class="form-control" id="wordFile" name="word_file" accept=".txt,.csv" required>
+                                    <div class="form-text">
+                                        支持 .txt 和 .csv 文件格式<br>
+                                        • TXT文件：每行一个敏感词<br>
+                                        • CSV文件：第一列为敏感词（会自动忽略表头）
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="encoding" class="form-label">文件编码</label>
+                                    <select class="form-select" id="encoding" name="encoding">
+                                        <option value="utf-8">UTF-8</option>
+                                        <option value="gbk">GBK</option>
+                                        <option value="gb2312">GB2312</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-upload me-1"></i>上传并导入
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- 预设词库 -->
+                        <div class="tab-pane fade" id="preset-import" role="tabpanel">
+                            <form action="{{ url_for('auth.import_preset_words') }}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">选择预设词库</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="categories" value="basic" id="basic">
+                                                <label class="form-check-label" for="basic">
+                                                    <strong>基础敏感词</strong><br>
+                                                    <small class="text-muted">包含常见的违法、色情、暴力等词汇</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="categories" value="politics" id="politics">
+                                                <label class="form-check-label" for="politics">
+                                                    <strong>政治敏感词</strong><br>
+                                                    <small class="text-muted">政治相关的敏感词汇</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="categories" value="gambling" id="gambling">
+                                                <label class="form-check-label" for="gambling">
+                                                    <strong>赌博相关</strong><br>
+                                                    <small class="text-muted">赌博、博彩相关词汇</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="categories" value="drugs" id="drugs">
+                                                <label class="form-check-label" for="drugs">
+                                                    <strong>毒品相关</strong><br>
+                                                    <small class="text-muted">毒品、药物滥用相关词汇</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="categories" value="fraud" id="fraud">
+                                                <label class="form-check-label" for="fraud">
+                                                    <strong>诈骗相关</strong><br>
+                                                    <small class="text-muted">诈骗、传销等欺诈词汇</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="categories" value="violence" id="violence">
+                                                <label class="form-check-label" for="violence">
+                                                    <strong>暴力恐怖</strong><br>
+                                                    <small class="text-muted">暴力、恐怖主义相关词汇</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    预设词库会根据选择的类别自动导入相应的敏感词，重复的词汇会自动跳过。
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-database me-1"></i>导入选中词库
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加敏感词模态框 -->
+<div class="modal fade" id="addWordModal" tabindex="-1" aria-labelledby="addWordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addWordModalLabel">添加敏感词</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('auth.add_sensitive_word') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="word" class="form-label">敏感词</label>
+                        <input type="text" class="form-control" id="word" name="word" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 删除敏感词确认模态框 -->
+<div class="modal fade" id="deleteWordModal" tabindex="-1" aria-labelledby="deleteWordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteWordModalLabel">确认删除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>您确定要删除这个敏感词吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <a href="" class="btn btn-danger" id="confirmDelete">确认删除</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 设置删除确认按钮的链接
+    document.getElementById('deleteWordModal').addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const wordId = button.getAttribute('data-word-id');
+        document.getElementById('confirmDelete').href = `{{ url_for('auth.delete_sensitive_word', id=0) }}`.replace('0', wordId);
+    });
+});
+</script>
+{% endblock %}

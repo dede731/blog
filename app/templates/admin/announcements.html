@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}网站公告管理 - {{ site_config.get('site_name', 'Trace Blog') }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">网站公告管理</h1>
+                <a href="{{ url_for('main.add_announcement') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>添加公告
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>标题</th>
+                                    <th>内容</th>
+                                    <th>排序</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for announcement in announcements %}
+                                <tr>
+                                    <td>{{ announcement.id }}</td>
+                                    <td>{{ announcement.title }}</td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 200px;" title="{{ announcement.content }}">
+                                            {{ announcement.content }}
+                                        </div>
+                                    </td>
+                                    <td>{{ announcement.order }}</td>
+                                    <td>
+                                        {% if announcement.is_active %}
+                                            <span class="badge bg-success">显示</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">隐藏</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ announcement.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('main.edit_announcement', id=announcement.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ url_for('main.delete_announcement', id=announcement.id) }}" 
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('确定要删除这个公告吗？')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="fas fa-bullhorn fa-2x mb-3 d-block"></i>
+                                        暂无公告
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>返回首页
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table th {
+        background-color: #f8f9fa;
+        border-top: none;
+        font-weight: 600;
+    }
+    
+    .btn-group .btn {
+        margin-right: 2px;
+    }
+    
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+    
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+{% endblock %}

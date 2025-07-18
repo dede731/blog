@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}留言板 - Trace_vlog{% endblock %}
+
+{% block meta_description %}欢迎在Trace_vlog博客的留言板上留下您的想法、建议或问题，与博主和其他读者交流互动。{% endblock %}
+
+{% block meta_keywords %}留言板,反馈,交流,互动{% endblock %}
+
+{% block og_title %}留言板 - Trace_vlog{% endblock %}
+{% block og_description %}欢迎在Trace_vlog博客的留言板上留下您的想法、建议或问题，与博主和其他读者交流互动。{% endblock %}
+{% block og_image %}{{ url_for('static', filename='img/og-image.jpg', _external=True) }}{% endblock %}
+{% block twitter_title %}留言板 - Trace_vlog{% endblock %}
+{% block twitter_description %}欢迎在Trace_vlog博客的留言板上留下您的想法、建议或问题，与博主和其他读者交流互动。{% endblock %}
+{% block twitter_image %}{{ url_for('static', filename='img/og-image.jpg', _external=True) }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DiscussionForumPosting",
+  "headline": "留言板 - Trace_vlog",
+  "description": "欢迎在Trace_vlog博客的留言板上留下您的想法、建议或问题，与博主和其他读者交流互动。",
+  "image": "{{ url_for('static', filename='img/og-image.jpg', _external=True) }}",
+  "author": {
+    "@type": "Person",
+    "name": "Trace_vlog"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Trace_vlog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ url_for('static', filename='img/og-image.jpg', _external=True) }}"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ request.url }}"
+  },
+  "interactionStatistic": {
+    "@type": "InteractionCounter",
+    "interactionType": "https://schema.org/CommentAction",
+    "userInteractionCount": "{{ messages.total if messages else 0 }}"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="guestbook-section">
+                <div class="guestbook-header text-center mb-5">
+                    <h1 class="display-4">留言板</h1>
+                    <p class="lead text-muted">欢迎留下您的想法、建议或问题</p>
+                </div>
+                
+                <!-- 留言表单 -->
+                <div class="card mb-5">
+                    <div class="card-body">
+                        <h2 class="card-title mb-4"><i class="fas fa-comment-dots me-2"></i>写下您的留言</h2>
+                        
+                        {% if current_user.is_authenticated %}
+                        <form action="{{ url_for('main.add_message') }}" method="post" id="messageForm">
+                            <div class="mb-3">
+                                <label for="content" class="form-label">留言内容</label>
+                                <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>提交留言
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>请 <a href="{{ url_for('auth.login') }}">登录</a> 后发表留言
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- 留言列表 -->
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title mb-4"><i class="fas fa-comments me-2"></i>留言列表</h2>
+                        
+                        {% if messages %}
+                        <div class="messages-container">
+                            {% for message in messages %}
+                            <div class="message-card" id="message-{{ message.id }}">
+                                <div class="message-header">
+                                    <div class="message-author">
+                                        <i class="fas fa-user-circle me-2"></i>
+                                        <span class="author-name">{{ message.author.username }}</span>
+                                        {% if message.author.is_admin %}
+                                        <span class="admin-badge">管理员</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="message-date me-3">
+                                            <i class="fas fa-calendar-alt me-2"></i>
+                                            <span>{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                        </div>
+                                        {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == message.author_id) %}
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                操作
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteMessage({{ message.id }})">删除</a></li>
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="message-content">
+                                    {{ message.content }}
+                                </div>
+                                
+                                <!-- 回复区域 -->
+                                {% if message.replies %}
+                                <div class="message-replies">
+                                    <h6 class="text-muted mb-3">回复：</h6>
+                                    {% for reply in message.replies %}
+                                    {% if reply.is_visible %}
+                                    <div class="reply-card">
+                                        <div class="reply-header">
+                                            <div class="reply-author">
+                                                <i class="fas fa-user-circle me-2"></i>
+                                                <span class="author-name">{{ reply.author.username }}</span>
+                                                {% if reply.author.is_admin %}
+                                                <span class="admin-badge">管理员</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="reply-date">
+                                                <i class="fas fa-calendar-alt me-2"></i>
+                                                <span>{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                            </div>
+                                            {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == reply.author_id) %}
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    操作
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteReply({{ reply.id }})">删除</a></li>
+                                                </ul>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="reply-content">
+                                            {{ reply.content }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                
+                                <!-- 回复表单 -->
+                                {% if current_user.is_authenticated %}
+                                <div class="reply-form-container">
+                                    <button class="btn btn-sm btn-outline-primary reply-toggle" data-message-id="{{ message.id }}">
+                                        <i class="fas fa-reply me-1"></i>回复
+                                    </button>
+                                    <form action="{{ url_for('main.guestbook') }}" method="post" class="reply-form d-none" id="replyForm-{{ message.id }}">
+                                        <input type="hidden" name="parent_id" value="{{ message.id }}">
+                                        <div class="mb-3">
+                                            <textarea class="form-control form-control-sm" name="content" rows="2" placeholder="回复 {{ message.author.username }}..." required></textarea>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2 cancel-reply" data-message-id="{{ message.id }}">
+                                                取消
+                                            </button>
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-paper-plane me-1"></i>提交回复
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            
+                            <!-- 分页 -->
+                            {% if messages.pages > 1 %}
+                            <nav aria-label="留言分页" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    {% if messages.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('main.guestbook', page=messages.prev_num) }}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    {% for page in messages.iter_pages() %}
+                                    {% if page %}
+                                    <li class="page-item {% if page == messages.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('main.guestbook', page=page) }}">{{ page }}</a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                    {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if messages.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('main.guestbook', page=messages.next_num) }}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-comment-slash fa-3x mb-3 text-muted"></i>
+                            <p class="lead text-muted">暂无留言</p>
+                            <p class="text-muted">成为第一个留言的人吧！</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.guestbook-section {
+    padding: 2rem 0;
+}
+
+.message-card {
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.message-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.message-author, .reply-author {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+}
+
+.message-date, .reply-date {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.message-content {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.message-replies {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    border-left: 3px solid var(--border-light);
+}
+
+.reply-card {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.reply-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.reply-content {
+    font-size: 0.95rem;
+}
+
+.admin-badge {
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    margin-left: 0.5rem;
+}
+
+.reply-form-container {
+    margin-top: 1rem;
+}
+
+.reply-form {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 回复按钮点击事件
+    document.querySelectorAll('.reply-toggle').forEach(button => {
+        button.addEventListener('click', function() {
+            const messageId = this.getAttribute('data-message-id');
+            const replyForm = document.getElementById(`replyForm-${messageId}`);
+            replyForm.classList.toggle('d-none');
+        });
+    });
+    
+    // 取消回复按钮点击事件
+    document.querySelectorAll('.cancel-reply').forEach(button => {
+        button.addEventListener('click', function() {
+            const messageId = this.getAttribute('data-message-id');
+            const replyForm = document.getElementById(`replyForm-${messageId}`);
+            replyForm.classList.add('d-none');
+        });
+    });
+});
+
+// 删除回复函数
+function deleteReply(replyId) {
+    if (confirm('确定要删除这条回复吗？')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/guestbook/reply/${replyId}/delete`;
+        
+        // 添加CSRF token
+        const csrfToken = document.querySelector('meta[name=csrf-token]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// 删除留言函数
+function deleteMessage(messageId) {
+    if (confirm('确定要删除这条留言吗？删除后将无法恢复，且所有回复也会被删除。')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/guestbook/message/${messageId}/delete`;
+        
+        // 添加CSRF token
+        const csrfToken = document.querySelector('meta[name=csrf-token]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

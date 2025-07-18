@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+Disallow: /auth/login
+Disallow: /auth/register
+Disallow: /auth/logout
+Disallow: /auth/profile
+Disallow: /auth/change-password
+Disallow: /auth/sensitive-words
+Disallow: /auth/sensitive-words/add
+Disallow: /auth/sensitive-words/import
+Disallow: /auth/sensitive-words/delete
+
+Sitemap: https://yourdomain.com/sitemap.xml

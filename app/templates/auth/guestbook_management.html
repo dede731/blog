@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}留言板管理 - Trace_vlog{% endblock %}
+
+{% block meta_description %}管理留言板内容，审核、隐藏或删除留言和回复{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">留言板管理</h1>
+                <div class="d-flex">
+                    <div class="btn-group me-2">
+                        <a href="{{ url_for('auth.guestbook_management', filter='all') }}" class="btn btn-outline-primary {% if filter == 'all' %}active{% endif %}">全部</a>
+                        <a href="{{ url_for('auth.guestbook_management', filter='visible') }}" class="btn btn-outline-success {% if filter == 'visible' %}active{% endif %}">显示中</a>
+                        <a href="{{ url_for('auth.guestbook_management', filter='hidden') }}" class="btn btn-outline-warning {% if filter == 'hidden' %}active{% endif %}">已隐藏</a>
+                    </div>
+                    <form class="d-flex" method="GET">
+                        <input type="hidden" name="filter" value="{{ filter }}">
+                        <input class="form-control me-2" type="search" name="search" placeholder="搜索留言内容..." value="{{ search }}" style="width: 200px;">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if messages.items %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>留言内容</th>
+                                    <th>作者</th>
+                                    <th>发布时间</th>
+                                    <th>状态</th>
+                                    <th>回复数</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for message in messages.items %}
+                                <tr>
+                                    <td>
+                                        <div class="message-content" style="max-width: 300px;">
+                                            {{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-user-circle me-2"></i>
+                                            {{ message.author.username }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {% if message.is_visible %}
+                                        <span class="badge bg-success">显示中</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">已隐藏</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ message.replies.count() }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#message-{{ message.id }}" aria-expanded="false">
+                                                <i class="fas fa-eye"></i> 查看
+                                            </button>
+                                            <a href="{{ url_for('auth.toggle_message_visibility', id=message.id, filter=filter) }}" class="btn btn-outline-warning btn-sm">
+                                                {% if message.is_visible %}
+                                                <i class="fas fa-eye-slash"></i> 隐藏
+                                                {% else %}
+                                                <i class="fas fa-eye"></i> 显示
+                                                {% endif %}
+                                            </a>
+                                            <a href="{{ url_for('auth.delete_message', id=message.id, filter=filter) }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('确定要删除这条留言吗？')">
+                                                <i class="fas fa-trash"></i> 删除
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="collapse" id="message-{{ message.id }}">
+                                    <td colspan="6">
+                                        <div class="p-3 bg-light">
+                                            <h6>完整留言内容：</h6>
+                                            <p class="mb-3">{{ message.content }}</p>
+                                            
+                                            {% if message.replies.count() > 0 %}
+                                            <h6>回复列表：</h6>
+                                            <div class="replies-list">
+                                                {% for reply in message.replies %}
+                                                <div class="reply-item border-start border-3 border-primary ps-3 mb-2">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <strong>{{ reply.author.username }}</strong>
+                                                            {% if reply.author.is_admin %}
+                                                            <span class="badge bg-danger ms-1">管理员</span>
+                                                            {% endif %}
+                                                            <small class="text-muted ms-2">{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                                            {% if not reply.is_visible %}
+                                                            <span class="badge bg-warning ms-2">已隐藏</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ url_for('auth.toggle_reply_visibility', id=reply.id, filter=filter) }}" class="btn btn-outline-warning btn-sm">
+                                                                {% if reply.is_visible %}
+                                                                <i class="fas fa-eye-slash"></i>
+                                                                {% else %}
+                                                                <i class="fas fa-eye"></i>
+                                                                {% endif %}
+                                                            </a>
+                                                            <a href="{{ url_for('auth.delete_reply', id=reply.id, filter=filter) }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('确定要删除这条回复吗？')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    <p class="mb-0 mt-1">{{ reply.content }}</p>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% else %}
+                                            <p class="text-muted">暂无回复</p>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分页 -->
+            {% if messages.pages > 1 %}
+            <nav aria-label="留言分页" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if messages.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('auth.guestbook_management', page=messages.prev_num, filter=filter, search=search) }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page in messages.iter_pages() %}
+                    {% if page %}
+                    {% if page != messages.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('auth.guestbook_management', page=page, filter=filter, search=search) }}">{{ page }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page }}</span>
+                    </li>
+                    {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if messages.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('auth.guestbook_management', page=messages.next_num, filter=filter, search=search) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">暂无留言</h5>
+                <p class="text-muted">还没有用户留言，或者没有符合筛选条件的留言。</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.reply-item {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+}
+
+.message-content {
+    word-break: break-word;
+}
+
+.replies-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
